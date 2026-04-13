@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Controle de Comunicados</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #f4f6f8;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    input,
+    button {
+      padding: 10px;
+      margin: 6px 0;
+      width: 100%;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background: #007bff;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    .cliente {
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      margin-top: 12px;
+      overflow: hidden;
+    }
+
+    .header {
+      cursor: pointer;
+      padding: 12px;
+      background: #f1f3f5;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .conteudo {
+      display: none;
+      padding: 15px;
+      background: #fafafa;
+    }
+
+    .acoes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .checkbox-item {
+      background: #fff;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+    }
+
+    .status {
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 5px;
+    }
+
+    .pendente {
+      background: #ffc107;
+    }
+
+    .parcial {
+      background: #17a2b8;
+      color: #fff;
+    }
+
+    .ok {
+      background: #28a745;
+      color: #fff;
+    }
+
+    .acoes-btn {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>Controle de Comunicados</h1>
+
+    <h3>Cadastrar Cliente</h3>
+    <input type="text" id="nome" placeholder="Nome do cliente">
+
+    <label>Data e Hora da Audiência</label>
+    <input type="datetime-local" id="audiencia">
+
+    <label>Data e Hora da Perícia</label>
+    <input type="datetime-local" id="pericia">
+
+    <button onclick="adicionarCliente()">Adicionar Cliente</button>
+
+    <h3>Buscar</h3>
+    <input type="text" id="busca" oninput="render()">
+
+    <div id="lista"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA-DtpAXs7HvHbeWK0IccmLaaRb4Q5v5w4",
+      authDomain: "controle-pericias-73b3f.firebaseapp.com",
+      projectId: "controle-pericias-73b3f",
+      storageBucket: "controle-pericias-73b3f.firebasestorage.app",
+      messagingSenderId: "346558999511",
+      appId: "1:346558999511:web:c7637471773f5426b4b992"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let clientes = [];
+    let abertoIndex = null;
+
+    // FORMATAR DATA
+    function formatar(valor) {
+      if (!valor) return "Não possui";
+      return new Date(valor).toLocaleString("pt-BR");
+    }
+
+    // STATUS
+    function status(c) {
+      let total = 0, ok = 0;
+
+      if (c.audiencia) {
+        total += 2;
+        if (c.comunicouAudiencia) ok++;
+        if (c.ligouAudiencia) ok++;
+      }
+
+      if (c.pericia) {
+        total += 2;
+        if (c.comunicouPericia) ok++;
+        if (c.ligouPericia) ok++;
+      }
+
+      if (ok === 0) return '<span class="status pendente">Pendente</span>';
+      if (ok < total) return '<span class="status parcial">Parcial</span>';
+      return '<span class="status ok">Concluído</span>';
+    }
+
+    // CARREGAR
+    async function carregar() {
+      const snap = await getDocs(collection(db, "clientes"));
+      clientes = [];
+      snap.forEach(doc => {
+        clientes.push({ id: doc.id, ...doc.data() });
+      });
+      render();
+    }
+
+    // ADICIONAR
+    window.adicionarCliente = async function () {
+      const nome = document.getElementById("nome").value;
+      const audiencia = document.getElementById("audiencia").value;
+      const pericia = document.getElementById("pericia").value;
+
+      if (!nome) return alert("Digite o nome");
+
+      await addDoc(collection(db, "clientes"), {
+        nome,
+        audiencia: audiencia || null,
+        pericia: pericia || null,
+        comunicouAudiencia: false,
+        comunicouPericia: false,
+        ligouAudiencia: false,
+        ligouPericia: false
+      });
+
+      document.getElementById("nome").value = "";
+      document.getElementById("audiencia").value = "";
+      document.getElementById("pericia").value = "";
+      document.getElementById("nome").focus();
+
+      carregar();
+    };
+
+    // CHECKBOX
+    window.toggle = async function (i, campo, e) {
+      e.stopPropagation();
+      const c = clientes[i];
+      await updateDoc(doc(db, "clientes", c.id), {
+        [campo]: !c[campo]
+      });
+      carregar();
+    };
+
+    // EXCLUIR
+    window.excluir = async function (i) {
+      if (confirm("Excluir?")) {
+        await deleteDoc(doc(db, "clientes", clientes[i].id));
+        carregar();
+      }
+    };
+
+    // EDITAR
+    window.editar = function (i) {
+      const c = clientes[i];
+      document.getElementById("nome").value = c.nome;
+      document.getElementById("audiencia").value = c.audiencia || "";
+      document.getElementById("pericia").value = c.pericia || "";
+    };
+
+    // TOGGLE CARD
+    window.toggleCard = function (i) {
+      abertoIndex = abertoIndex === i ? null : i;
+      render();
+    };
+
+    // RENDER
+    window.render = function () {
+      const lista = document.getElementById("lista");
+      const busca = document.getElementById("busca").value.toLowerCase();
+
+      lista.innerHTML = "";
+
+      clientes
+        .filter(c => c.nome.toLowerCase().includes(busca))
+        .forEach((c, i) => {
+          lista.innerHTML += `
+    <div class="cliente">
+      <div class="header" onclick="toggleCard(${i})">
+        <strong>${c.nome}</strong>
+        ${status(c)}
+      </div>
+
+      <div class="conteudo" style="display:${abertoIndex === i ? 'block' : 'none'}">
+        <div>📅 ${formatar(c.audiencia)}</div>
+        <div>🩺 ${formatar(c.pericia)}</div>
+
+        <div class="acoes">
+          ${c.audiencia ? `
+          <div class="checkbox-item">
+            <input type="checkbox" ${c.comunicouAudiencia ? 'checked' : ''} onclick="toggle(${i},'comunicouAudiencia',event)">
+            Comunicado Audiência
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" ${c.ligouAudiencia ? 'checked' : ''} onclick="toggle(${i},'ligouAudiencia',event)">
+            Ligou Audiência
+          </div>`: ''}
+
+          ${c.pericia ? `
+          <div class="checkbox-item">
+            <input type="checkbox" ${c.comunicouPericia ? 'checked' : ''} onclick="toggle(${i},'comunicouPericia',event)">
+            Comunicado Perícia
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" ${c.ligouPericia ? 'checked' : ''} onclick="toggle(${i},'ligouPericia',event)">
+            Ligou Perícia
+          </div>`: ''}
+        </div>
+
+        <div class="acoes-btn">
+          <button onclick="editar(${i})">Editar</button>
+          <button onclick="excluir(${i})">Excluir</button>
+        </div>
+      </div>
+    </div>`;
+        });
+    };
+
+    // iniciar
+    carregar();
+
+  </script>
+
+</body>
+
+</html>
