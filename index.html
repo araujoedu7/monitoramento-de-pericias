@@ -3,46 +3,155 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Controle de Comunicados</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controle de Perícias</title>
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial;
+      font-family: Arial, sans-serif;
       background: #f4f6f8;
       padding: 20px;
+      margin: 0;
+      color: #222;
     }
 
     .container {
-      max-width: 900px;
+      max-width: 1100px;
       margin: auto;
       background: #fff;
       padding: 20px;
-      border-radius: 12px;
+      border-radius: 14px;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
     }
 
-    h1 {
-      text-align: center;
+    h1,
+    h2,
+    h3 {
+      margin-top: 0;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .mes-card {
+      background: #f8f9fb;
+      border: 1px solid #dfe5ec;
+      border-radius: 12px;
+      padding: 16px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .mes-card:hover {
+      transform: translateY(-2px);
+      border-color: #007bff;
+    }
+
+    .mes-titulo {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .muted {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .form-box,
+    .lista-box {
+      background: #fafafa;
+      border: 1px solid #e3e3e3;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 20px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+    }
+
+    label {
+      font-weight: bold;
+      font-size: 14px;
+      display: block;
+      margin-bottom: 6px;
     }
 
     input,
-    button {
-      padding: 10px;
-      margin: 6px 0;
+    select,
+    button,
+    textarea {
       width: 100%;
-      border-radius: 6px;
+      padding: 10px;
+      border-radius: 8px;
       border: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 90px;
     }
 
     button {
       background: #007bff;
-      color: #fff;
+      color: white;
       border: none;
       cursor: pointer;
+      transition: 0.2s;
     }
 
     button:hover {
       background: #0056b3;
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+    }
+
+    .btn-secondary:hover {
+      background: #545b62;
+    }
+
+    .btn-danger {
+      background: #dc3545;
+    }
+
+    .btn-danger:hover {
+      background: #b02a37;
+    }
+
+    .btn-success {
+      background: #28a745;
+    }
+
+    .btn-success:hover {
+      background: #1f7f35;
+    }
+
+    .acoes-topo {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
     }
 
     .cliente {
@@ -50,6 +159,7 @@
       border-radius: 10px;
       margin-top: 12px;
       overflow: hidden;
+      background: white;
     }
 
     .header {
@@ -58,12 +168,34 @@
       background: #f1f3f5;
       display: flex;
       justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header strong {
+      display: block;
+      margin-bottom: 4px;
     }
 
     .conteudo {
-      display: none;
       padding: 15px;
       background: #fafafa;
+      border-top: 1px solid #ececec;
+    }
+
+    .detalhes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .detalhe-item {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 14px;
     }
 
     .acoes {
@@ -78,16 +210,26 @@
       padding: 8px;
       border-radius: 6px;
       border: 1px solid #ddd;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .checkbox-item input {
+      width: auto;
+      margin: 0;
     }
 
     .status {
       font-size: 12px;
       padding: 4px 8px;
       border-radius: 5px;
+      white-space: nowrap;
     }
 
     .pendente {
       background: #ffc107;
+      color: #222;
     }
 
     .parcial {
@@ -104,36 +246,135 @@
       display: flex;
       gap: 10px;
       margin-top: 15px;
+      flex-wrap: wrap;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 30px;
+      color: #666;
     }
   </style>
 </head>
 
 <body>
-
   <div class="container">
-    <h1>Controle de Comunicados</h1>
+    <div id="homeView">
+      <div class="topbar">
+        <h1>Controle de Perícias por Mês</h1>
+      </div>
 
-    <h3>Cadastrar Cliente</h3>
-    <input type="text" id="nome" placeholder="Nome do cliente">
+      <div class="form-box">
+        <h3>Criar pasta do mês</h3>
+        <div class="form-grid">
+          <div>
+            <label>Mês/Ano</label>
+            <input type="month" id="novoMes">
+          </div>
+        </div>
+        <div class="acoes-topo" style="margin-top: 12px;">
+          <button class="btn-success" onclick="criarMes()">Criar Pasta do Mês</button>
+        </div>
+      </div>
 
-    <label>Data e Hora da Audiência</label>
-    <input type="datetime-local" id="audiencia">
+      <div class="lista-box">
+        <h3>Meses cadastrados</h3>
+        <div id="listaMeses" class="grid"></div>
+      </div>
+    </div>
 
-    <label>Data e Hora da Perícia</label>
-    <input type="datetime-local" id="pericia">
+    <div id="mesView" class="hidden">
+      <div class="topbar">
+        <div>
+          <button class="btn-secondary" onclick="voltarHome()">← Voltar para os meses</button>
+        </div>
+        <h2 id="tituloMes"></h2>
+      </div>
 
-    <button onclick="adicionarCliente()">Adicionar Cliente</button>
+      <div class="form-box">
+        <h3 id="tituloFormulario">Cadastrar Perícia</h3>
 
-    <h3>Buscar</h3>
-    <input type="text" id="busca" oninput="render()">
+        <div class="form-grid">
+          <div>
+            <label>Nome do cliente</label>
+            <input type="text" id="nome" placeholder="Nome do cliente">
+          </div>
 
-    <div id="lista"></div>
+          <div>
+            <label>Tipo de perícia</label>
+            <select id="tipoPericia">
+              <option value="">Selecione</option>
+              <option value="Médica">Médica</option>
+              <option value="Social">Social</option>
+              <option value="Trabalhista">Trabalhista</option>
+              <option value="Contábil">Contábil</option>
+              <option value="Psicológica">Psicológica</option>
+              <option value="Outra">Outra</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Natureza do caso</label>
+            <select id="naturezaCaso">
+              <option value="">Selecione</option>
+              <option value="Judicial">Judicial</option>
+              <option value="Administrativo">Administrativo</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Data e hora da audiência</label>
+            <input type="datetime-local" id="audiencia">
+          </div>
+
+          <div>
+            <label>Data e hora da perícia</label>
+            <input type="datetime-local" id="pericia">
+          </div>
+
+          <div>
+            <label>Número do processo</label>
+            <input type="text" id="processo" placeholder="Opcional">
+          </div>
+        </div>
+
+        <div style="margin-top: 12px;">
+          <label>Observações</label>
+          <textarea id="observacoes" placeholder="Anotações adicionais"></textarea>
+        </div>
+
+        <div class="acoes-topo" style="margin-top: 12px;">
+          <button id="btnSalvar" onclick="salvarPericia()">Salvar Perícia</button>
+          <button class="btn-secondary" onclick="cancelarEdicao()">Limpar</button>
+        </div>
+      </div>
+
+      <div class="lista-box">
+        <h3>Buscar perícias do mês</h3>
+        <input type="text" id="busca" placeholder="Buscar por nome, processo, tipo..." oninput="renderPericias()">
+
+        <div id="listaPericias"></div>
+      </div>
+    </div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc }
-      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      getDocs,
+      updateDoc,
+      deleteDoc,
+      doc,
+      getDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyA-DtpAXs7HvHbeWK0IccmLaaRb4Q5v5w4",
@@ -147,161 +388,304 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    let clientes = [];
+    let meses = [];
+    let pericias = [];
+    let mesAtualId = null;
     let abertoIndex = null;
+    let editandoId = null;
 
-    // FORMATAR DATA
-    function formatar(valor) {
-      if (!valor) return "Não possui";
+    function formatarData(valor) {
+      if (!valor) return "Não informado";
       return new Date(valor).toLocaleString("pt-BR");
     }
 
-    // STATUS
-    function status(c) {
-      let total = 0, ok = 0;
+    function formatarMes(valor) {
+      if (!valor) return "Mês sem nome";
+      const [ano, mes] = valor.split("-");
+      const data = new Date(Number(ano), Number(mes) - 1, 1);
+      return data.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+    }
 
-      if (c.audiencia) {
+    function status(p) {
+      let total = 0;
+      let ok = 0;
+
+      if (p.audiencia) {
         total += 2;
-        if (c.comunicouAudiencia) ok++;
-        if (c.ligouAudiencia) ok++;
+        if (p.comunicouAudiencia) ok++;
+        if (p.ligouAudiencia) ok++;
       }
 
-      if (c.pericia) {
+      if (p.pericia) {
         total += 2;
-        if (c.comunicouPericia) ok++;
-        if (c.ligouPericia) ok++;
+        if (p.comunicouPericia) ok++;
+        if (p.ligouPericia) ok++;
       }
 
-      if (ok === 0) return '<span class="status pendente">Pendente</span>';
+      if (total === 0 || ok === 0) return '<span class="status pendente">Pendente</span>';
       if (ok < total) return '<span class="status parcial">Parcial</span>';
       return '<span class="status ok">Concluído</span>';
     }
 
-    // CARREGAR
-    async function carregar() {
-      const snap = await getDocs(collection(db, "clientes"));
-      clientes = [];
-      snap.forEach(doc => {
-        clientes.push({ id: doc.id, ...doc.data() });
+    async function carregarMeses() {
+      const snap = await getDocs(collection(db, "meses"));
+      meses = [];
+      snap.forEach(item => {
+        meses.push({ id: item.id, ...item.data() });
       });
-      render();
+
+      meses.sort((a, b) => (a.referencia || '').localeCompare(b.referencia || ''));
+      renderMeses();
     }
 
-    // ADICIONAR
-    window.adicionarCliente = async function () {
-      const nome = document.getElementById("nome").value;
-      const audiencia = document.getElementById("audiencia").value;
-      const pericia = document.getElementById("pericia").value;
-
-      if (!nome) return alert("Digite o nome");
-
-      await addDoc(collection(db, "clientes"), {
-        nome,
-        audiencia: audiencia || null,
-        pericia: pericia || null,
-        comunicouAudiencia: false,
-        comunicouPericia: false,
-        ligouAudiencia: false,
-        ligouPericia: false
-      });
-
-      document.getElementById("nome").value = "";
-      document.getElementById("audiencia").value = "";
-      document.getElementById("pericia").value = "";
-      document.getElementById("nome").focus();
-
-      carregar();
-    };
-
-    // CHECKBOX
-    window.toggle = async function (i, campo, e) {
-      e.stopPropagation();
-      const c = clientes[i];
-      await updateDoc(doc(db, "clientes", c.id), {
-        [campo]: !c[campo]
-      });
-      carregar();
-    };
-
-    // EXCLUIR
-    window.excluir = async function (i) {
-      if (confirm("Excluir?")) {
-        await deleteDoc(doc(db, "clientes", clientes[i].id));
-        carregar();
-      }
-    };
-
-    // EDITAR
-    window.editar = function (i) {
-      const c = clientes[i];
-      document.getElementById("nome").value = c.nome;
-      document.getElementById("audiencia").value = c.audiencia || "";
-      document.getElementById("pericia").value = c.pericia || "";
-    };
-
-    // TOGGLE CARD
-    window.toggleCard = function (i) {
-      abertoIndex = abertoIndex === i ? null : i;
-      render();
-    };
-
-    // RENDER
-    window.render = function () {
-      const lista = document.getElementById("lista");
-      const busca = document.getElementById("busca").value.toLowerCase();
-
+    function renderMeses() {
+      const lista = document.getElementById("listaMeses");
       lista.innerHTML = "";
 
-      clientes
-        .filter(c => c.nome.toLowerCase().includes(busca))
-        .forEach((c, i) => {
-          lista.innerHTML += `
-    <div class="cliente">
-      <div class="header" onclick="toggleCard(${i})">
-        <strong>${c.nome}</strong>
-        ${status(c)}
-      </div>
+      if (!meses.length) {
+        lista.innerHTML = '<div class="empty">Nenhuma pasta de mês criada ainda.</div>';
+        return;
+      }
 
-      <div class="conteudo" style="display:${abertoIndex === i ? 'block' : 'none'}">
-        <div>📅 ${formatar(c.audiencia)}</div>
-        <div>🩺 ${formatar(c.pericia)}</div>
-
-        <div class="acoes">
-          ${c.audiencia ? `
-          <div class="checkbox-item">
-            <input type="checkbox" ${c.comunicouAudiencia ? 'checked' : ''} onclick="toggle(${i},'comunicouAudiencia',event)">
-            Comunicado Audiência
+      meses.forEach(mes => {
+        lista.innerHTML += `
+          <div class="mes-card" onclick="abrirMes('${mes.id}')">
+            <div class="mes-titulo">${formatarMes(mes.referencia)}</div>
+            <div class="muted">Clique para abrir as perícias deste mês</div>
           </div>
-          <div class="checkbox-item">
-            <input type="checkbox" ${c.ligouAudiencia ? 'checked' : ''} onclick="toggle(${i},'ligouAudiencia',event)">
-            Ligou Audiência
-          </div>`: ''}
+        `;
+      });
+    }
 
-          ${c.pericia ? `
-          <div class="checkbox-item">
-            <input type="checkbox" ${c.comunicouPericia ? 'checked' : ''} onclick="toggle(${i},'comunicouPericia',event)">
-            Comunicado Perícia
-          </div>
-          <div class="checkbox-item">
-            <input type="checkbox" ${c.ligouPericia ? 'checked' : ''} onclick="toggle(${i},'ligouPericia',event)">
-            Ligou Perícia
-          </div>`: ''}
-        </div>
+    window.criarMes = async function () {
+      const referencia = document.getElementById("novoMes").value;
+      if (!referencia) return alert("Selecione o mês.");
 
-        <div class="acoes-btn">
-          <button onclick="editar(${i})">Editar</button>
-          <button onclick="excluir(${i})">Excluir</button>
-        </div>
-      </div>
-    </div>`;
-        });
+      const jaExiste = meses.some(m => m.referencia === referencia);
+      if (jaExiste) return alert("Esta pasta de mês já existe.");
+
+      await addDoc(collection(db, "meses"), {
+        referencia,
+        criadoEm: new Date().toISOString()
+      });
+
+      document.getElementById("novoMes").value = "";
+      await carregarMeses();
     };
 
-    // iniciar
-    carregar();
+    window.abrirMes = async function (mesId) {
+      mesAtualId = mesId;
+      editandoId = null;
+      abertoIndex = null;
+      limparFormulario();
 
+      const mesRef = doc(db, "meses", mesId);
+      const mesSnap = await getDoc(mesRef);
+      const dadosMes = mesSnap.data();
+
+      document.getElementById("tituloMes").textContent = `Perícias de ${formatarMes(dadosMes.referencia)}`;
+      document.getElementById("homeView").classList.add("hidden");
+      document.getElementById("mesView").classList.remove("hidden");
+
+      await carregarPericias();
+    };
+
+    window.voltarHome = function () {
+      mesAtualId = null;
+      pericias = [];
+      document.getElementById("homeView").classList.remove("hidden");
+      document.getElementById("mesView").classList.add("hidden");
+      carregarMeses();
+    };
+
+    async function carregarPericias() {
+      if (!mesAtualId) return;
+      const snap = await getDocs(collection(db, "meses", mesAtualId, "pericias"));
+      pericias = [];
+      snap.forEach(item => {
+        pericias.push({ id: item.id, ...item.data() });
+      });
+
+      pericias.sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
+      renderPericias();
+    }
+
+    function limparFormulario() {
+      document.getElementById("nome").value = "";
+      document.getElementById("tipoPericia").value = "";
+      document.getElementById("naturezaCaso").value = "";
+      document.getElementById("audiencia").value = "";
+      document.getElementById("pericia").value = "";
+      document.getElementById("processo").value = "";
+      document.getElementById("observacoes").value = "";
+      document.getElementById("btnSalvar").textContent = "Salvar Perícia";
+      document.getElementById("tituloFormulario").textContent = "Cadastrar Perícia";
+      editandoId = null;
+    }
+
+    window.cancelarEdicao = function () {
+      limparFormulario();
+    };
+
+    window.salvarPericia = async function () {
+      if (!mesAtualId) return alert("Abra um mês primeiro.");
+
+      const nome = document.getElementById("nome").value.trim();
+      const tipoPericia = document.getElementById("tipoPericia").value;
+      const naturezaCaso = document.getElementById("naturezaCaso").value;
+      const audiencia = document.getElementById("audiencia").value;
+      const pericia = document.getElementById("pericia").value;
+      const processo = document.getElementById("processo").value.trim();
+      const observacoes = document.getElementById("observacoes").value.trim();
+
+      if (!nome) return alert("Digite o nome do cliente.");
+
+      const dados = {
+        nome,
+        tipoPericia: tipoPericia || null,
+        naturezaCaso: naturezaCaso || null,
+        audiencia: audiencia || null,
+        pericia: pericia || null,
+        processo: processo || null,
+        observacoes: observacoes || null
+      };
+
+      if (editandoId) {
+        await updateDoc(doc(db, "meses", mesAtualId, "pericias", editandoId), dados);
+      } else {
+        await addDoc(collection(db, "meses", mesAtualId, "pericias"), {
+          ...dados,
+          comunicouAudiencia: false,
+          comunicouPericia: false,
+          ligouAudiencia: false,
+          ligouPericia: false,
+          criadoEm: new Date().toISOString()
+        });
+      }
+
+      limparFormulario();
+      await carregarPericias();
+    };
+
+    window.editarPericia = function (i) {
+      const p = pericias[i];
+      editandoId = p.id;
+
+      document.getElementById("nome").value = p.nome || "";
+      document.getElementById("tipoPericia").value = p.tipoPericia || "";
+      document.getElementById("naturezaCaso").value = p.naturezaCaso || "";
+      document.getElementById("audiencia").value = p.audiencia || "";
+      document.getElementById("pericia").value = p.pericia || "";
+      document.getElementById("processo").value = p.processo || "";
+      document.getElementById("observacoes").value = p.observacoes || "";
+
+      document.getElementById("btnSalvar").textContent = "Atualizar Perícia";
+      document.getElementById("tituloFormulario").textContent = "Editar Perícia";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    window.excluirPericia = async function (i) {
+      const p = pericias[i];
+      if (!confirm(`Excluir a perícia de ${p.nome}?`)) return;
+      await deleteDoc(doc(db, "meses", mesAtualId, "pericias", p.id));
+      await carregarPericias();
+    };
+
+    window.toggleCard = function (i) {
+      abertoIndex = abertoIndex === i ? null : i;
+      renderPericias();
+    };
+
+    window.toggle = async function (i, campo, e) {
+      e.stopPropagation();
+      const p = pericias[i];
+      await updateDoc(doc(db, "meses", mesAtualId, "pericias", p.id), {
+        [campo]: !p[campo]
+      });
+      await carregarPericias();
+    };
+
+    window.renderPericias = function () {
+      const lista = document.getElementById("listaPericias");
+      const busca = document.getElementById("busca").value.toLowerCase();
+      lista.innerHTML = "";
+
+      const filtradas = pericias.filter(p => {
+        const texto = [
+          p.nome,
+          p.processo,
+          p.tipoPericia,
+          p.naturezaCaso,
+          p.observacoes
+        ].filter(Boolean).join(' ').toLowerCase();
+
+        return texto.includes(busca);
+      });
+
+      if (!filtradas.length) {
+        lista.innerHTML = '<div class="empty">Nenhuma perícia encontrada neste mês.</div>';
+        return;
+      }
+
+      filtradas.forEach((p, i) => {
+        const indiceReal = pericias.findIndex(item => item.id === p.id);
+
+        lista.innerHTML += `
+          <div class="cliente">
+            <div class="header" onclick="toggleCard(${indiceReal})">
+              <div>
+                <strong>${p.nome}</strong>
+                <div class="muted">${p.tipoPericia || 'Tipo não informado'} • ${p.naturezaCaso || 'Natureza não informada'}</div>
+              </div>
+              ${status(p)}
+            </div>
+
+            <div class="conteudo" style="display:${abertoIndex === indiceReal ? 'block' : 'none'}">
+              <div class="detalhes">
+                <div class="detalhe-item"><strong>Tipo de perícia:</strong><br>${p.tipoPericia || 'Não informado'}</div>
+                <div class="detalhe-item"><strong>Natureza do caso:</strong><br>${p.naturezaCaso || 'Não informado'}</div>
+                <div class="detalhe-item"><strong>Processo:</strong><br>${p.processo || 'Não informado'}</div>
+                <div class="detalhe-item"><strong>Audiência:</strong><br>${formatarData(p.audiencia)}</div>
+                <div class="detalhe-item"><strong>Perícia:</strong><br>${formatarData(p.pericia)}</div>
+                <div class="detalhe-item"><strong>Observações:</strong><br>${p.observacoes || 'Sem observações'}</div>
+              </div>
+
+              <div class="acoes">
+                ${p.audiencia ? `
+                  <label class="checkbox-item">
+                    <input type="checkbox" ${p.comunicouAudiencia ? 'checked' : ''} onclick="toggle(${indiceReal}, 'comunicouAudiencia', event)">
+                    Comunicado Audiência
+                  </label>
+                  <label class="checkbox-item">
+                    <input type="checkbox" ${p.ligouAudiencia ? 'checked' : ''} onclick="toggle(${indiceReal}, 'ligouAudiencia', event)">
+                    Ligou Audiência
+                  </label>
+                ` : ''}
+
+                ${p.pericia ? `
+                  <label class="checkbox-item">
+                    <input type="checkbox" ${p.comunicouPericia ? 'checked' : ''} onclick="toggle(${indiceReal}, 'comunicouPericia', event)">
+                    Comunicado Perícia
+                  </label>
+                  <label class="checkbox-item">
+                    <input type="checkbox" ${p.ligouPericia ? 'checked' : ''} onclick="toggle(${indiceReal}, 'ligouPericia', event)">
+                    Ligou Perícia
+                  </label>
+                ` : ''}
+              </div>
+
+              <div class="acoes-btn">
+                <button onclick="editarPericia(${indiceReal})">Editar</button>
+                <button class="btn-danger" onclick="excluirPericia(${indiceReal})">Excluir</button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    };
+
+    carregarMeses();
   </script>
-
 </body>
 
 </html>
